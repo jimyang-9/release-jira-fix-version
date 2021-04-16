@@ -37,8 +37,8 @@ async function run(): Promise<void> {
       core.setOutput(key, value)
     }
     core.endGroup()
-  } catch (error) {
-    core.setFailed(error.message)
+  } catch (error: unknown) {
+    core.setFailed(error instanceof Error ? error.message : String(error))
   }
 }
 

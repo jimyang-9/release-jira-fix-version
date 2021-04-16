@@ -40,10 +40,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.releaseJiraFixVersion = exports.getJiraVersion = void 0;
-const axios_1 = __importDefault(__webpack_require__(6545));
 const core = __importStar(__webpack_require__(2186));
-const getJiraVersion = (email, apiToken, domain, versionId) => __awaiter(void 0, void 0, void 0, function* () {
+const axios_1 = __importDefault(__webpack_require__(6545));
+const toMoreDescriptiveError = (error) => {
     var _a, _b, _c;
+    if (isAxiosError(error) &&
+        ((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 404 &&
+        Array.isArray((_b = error.response.data) === null || _b === void 0 ? void 0 : _b.errorMessages)) {
+        return new Error(`${(_c = error.response.data) === null || _c === void 0 ? void 0 : _c.errorMessages[0]} (this may be due to a missing/invalid API key)`);
+    }
+    else {
+        core.debug(`error: ${error}`);
+        return error;
+    }
+};
+const getJiraVersion = (email, apiToken, domain, versionId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         core.debug('getting version...');
         const response = yield axios_1.default.get(`https://${domain}.atlassian.net/rest/api/3/version/${versionId}`, {
@@ -55,23 +66,11 @@ const getJiraVersion = (email, apiToken, domain, versionId) => __awaiter(void 0,
         return response === null || response === void 0 ? void 0 : response.data;
     }
     catch (error) {
-        core.debug('error on get version');
-        core.debug(`error = ${error}`);
-        if (isAxiosError(error) &&
-            ((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 404 &&
-            Array.isArray((_b = error.response.data) === null || _b === void 0 ? void 0 : _b.errorMessages)) {
-            core.debug('throwing nice error');
-            throw new Error(`${(_c = error.response.data) === null || _c === void 0 ? void 0 : _c.errorMessages[0]} (this may be due to a missing/invalid API key)`);
-        }
-        else {
-            core.debug('wtf...');
-            throw error;
-        }
+        throw toMoreDescriptiveError(error);
     }
 });
 exports.getJiraVersion = getJiraVersion;
 const releaseJiraFixVersion = (email, apiToken, domain, version) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d, _e, _f;
     try {
         core.debug('releasing...');
         const response = yield axios_1.default.put(`https://${domain}.atlassian.net/rest/api/3/version/${version.id}`, Object.assign(Object.assign({}, version), { released: true }), {
@@ -83,16 +82,7 @@ const releaseJiraFixVersion = (email, apiToken, domain, version) => __awaiter(vo
         return response === null || response === void 0 ? void 0 : response.data;
     }
     catch (error) {
-        if (isAxiosError(error) &&
-            ((_d = error.response) === null || _d === void 0 ? void 0 : _d.status) === 404 &&
-            Array.isArray((_e = error.response.data) === null || _e === void 0 ? void 0 : _e.errorMessages)) {
-            core.debug('nice error release');
-            throw new Error(`${(_f = error.response.data) === null || _f === void 0 ? void 0 : _f.errorMessages[0]} (this may be due to a missing/invalid API key)`);
-        }
-        else {
-            core.debug('wtf...release');
-            throw error;
-        }
+        throw toMoreDescriptiveError(error);
     }
 });
 exports.releaseJiraFixVersion = releaseJiraFixVersion;
@@ -201,7 +191,7 @@ function run() {
             core.endGroup();
         }
         catch (error) {
-            core.setFailed(error.message);
+            core.setFailed(error instanceof Error ? error.message : String(error));
         }
     });
 }

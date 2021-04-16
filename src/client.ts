@@ -1,6 +1,21 @@
+import * as core from '@actions/core'
 import axios, {AxiosError} from 'axios'
 import {Version} from './models'
-import * as core from '@actions/core'
+
+const toMoreDescriptiveError = (error: unknown): Error | unknown => {
+  if (
+    isAxiosError(error) &&
+    error.response?.status === 404 &&
+    Array.isArray(error.response.data?.errorMessages)
+  ) {
+    return new Error(
+      `${error.response.data?.errorMessages[0]} (this may be due to a missing/invalid API key)`
+    )
+  } else {
+    core.debug(`error: ${error}`)
+    return error
+  }
+}
 
 export const getJiraVersion = async (
   email: string,
@@ -22,22 +37,8 @@ export const getJiraVersion = async (
       }
     )
     return response?.data
-  } catch (error) {
-    core.debug('error on get version')
-    core.debug(`error = ${error}`)
-    if (
-      isAxiosError(error) &&
-      error.response?.status === 404 &&
-      Array.isArray(error.response.data?.errorMessages)
-    ) {
-      core.debug('throwing nice error')
-      throw new Error(
-        `${error.response.data?.errorMessages[0]} (this may be due to a missing/invalid API key)`
-      )
-    } else {
-      core.debug('wtf...')
-      throw error
-    }
+  } catch (error: unknown) {
+    throw toMoreDescriptiveError(error)
   }
 }
 
@@ -63,20 +64,8 @@ export const releaseJiraFixVersion = async (
     )
 
     return response?.data
-  } catch (error) {
-    if (
-      isAxiosError(error) &&
-      error.response?.status === 404 &&
-      Array.isArray(error.response.data?.errorMessages)
-    ) {
-      core.debug('nice error release')
-      throw new Error(
-        `${error.response.data?.errorMessages[0]} (this may be due to a missing/invalid API key)`
-      )
-    } else {
-      core.debug('wtf...release')
-      throw error
-    }
+  } catch (error: unknown) {
+    throw toMoreDescriptiveError(error)
   }
 }
 
