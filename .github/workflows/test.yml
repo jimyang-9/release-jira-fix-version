@@ -27,4 +27,4 @@ jobs:
           subdomain: ${{ secrets.SUBDOMAIN }}
           version-id: ${{ secrets.VERSION_ID }}
       - name: 'Release fix version'
-        run: echo "Latest Version ${{ steps.release-version.outputs }}"
+        run: echo "Latest Version ${{ steps.release-version.outputs.released }}"
