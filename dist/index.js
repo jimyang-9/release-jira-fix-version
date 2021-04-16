@@ -7,6 +7,25 @@ require('./sourcemap-register.js');module.exports =
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -22,24 +41,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.releaseJiraFixVersion = exports.getJiraVersion = void 0;
 const axios_1 = __importDefault(__webpack_require__(6545));
+const core = __importStar(__webpack_require__(2186));
 const getJiraVersion = (email, apiToken, domain, versionId) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     try {
-        const { data: version } = yield axios_1.default.get(`https://${domain}.atlassian.com/rest/api/3/version/${versionId}`, {
+        core.debug('getting version...');
+        const response = yield axios_1.default.get(`https://${domain}.atlassian.net/rest/api/3/version/${versionId}`, {
             headers: {
                 Authorization: `Basic ${Buffer.from(`${email}:${apiToken}`).toString('base64')}`,
                 Accept: 'application/json'
             }
         });
-        return version;
+        return response === null || response === void 0 ? void 0 : response.data;
     }
     catch (error) {
+        core.debug('error on get version');
+        core.debug(`error = ${error}`);
         if (isAxiosError(error) &&
             ((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 404 &&
             Array.isArray((_b = error.response.data) === null || _b === void 0 ? void 0 : _b.errorMessages)) {
+            core.debug('throwing nice error');
             throw new Error(`${(_c = error.response.data) === null || _c === void 0 ? void 0 : _c.errorMessages[0]} (this may be due to a missing/invalid API key)`);
         }
         else {
+            core.debug('wtf...');
             throw error;
         }
     }
@@ -48,21 +73,24 @@ exports.getJiraVersion = getJiraVersion;
 const releaseJiraFixVersion = (email, apiToken, domain, version) => __awaiter(void 0, void 0, void 0, function* () {
     var _d, _e, _f;
     try {
-        const { data: releasedVersion } = yield axios_1.default.put(`https://${domain}.atlassian.com/rest/api/3/version/${version.id}`, Object.assign(Object.assign({}, version), { released: true }), {
+        core.debug('releasing...');
+        const response = yield axios_1.default.put(`https://${domain}.atlassian.net/rest/api/3/version/${version.id}`, Object.assign(Object.assign({}, version), { released: true }), {
             headers: {
                 Authorization: `Basic ${Buffer.from(`${email}:${apiToken}`).toString('base64')}`,
                 Accept: 'application/json'
             }
         });
-        return releasedVersion;
+        return response === null || response === void 0 ? void 0 : response.data;
     }
     catch (error) {
         if (isAxiosError(error) &&
             ((_d = error.response) === null || _d === void 0 ? void 0 : _d.status) === 404 &&
             Array.isArray((_e = error.response.data) === null || _e === void 0 ? void 0 : _e.errorMessages)) {
+            core.debug('nice error release');
             throw new Error(`${(_f = error.response.data) === null || _f === void 0 ? void 0 : _f.errorMessages[0]} (this may be due to a missing/invalid API key)`);
         }
         else {
+            core.debug('wtf...release');
             throw error;
         }
     }
@@ -161,6 +189,9 @@ function run() {
                 core.setFailed('Version is already released');
             }
             const releasedVersion = yield client_1.releaseJiraFixVersion(env_1.EMAIL, env_1.API_TOKEN, env_1.SUBDOMAIN, version);
+            if (!releasedVersion || !(releasedVersion === null || releasedVersion === void 0 ? void 0 : releasedVersion.released)) {
+                core.setFailed('Could not release version');
+            }
             core.startGroup('Released Version');
             for (const key in releasedVersion) {
                 const value = releasedVersion[key];
