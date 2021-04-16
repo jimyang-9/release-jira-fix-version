@@ -1,11 +1,19 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'release-jira-fix-version'
+description: 'Sets the release of a Jira version to true when passed in a version id'
+author: 'Jim Yang'
 inputs:
-  milliseconds: # change this
+  email:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: Email address associated with api token
+  api-token:
+    required: true
+    description: Jira API token
+  subdomain:
+    required: true
+    description: '{subdomain}.atlassian.com'
+  version-id:
+    required: true
+    description: The id of the unreleased version
 runs:
   using: 'node12'
   main: 'dist/index.js'
