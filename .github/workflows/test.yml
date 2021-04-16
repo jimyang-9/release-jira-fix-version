@@ -19,6 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./
+      - id: release-version
+        uses: ./
         with:
-          milliseconds: 1000
+          email: ${{ secrets.EMAIL }}
+          api-token: ${{ secrets.API_TOKEN }}
+          subdomain: ${{ secrets.SUBDOMAIN }}
+          version-id: ${{ secrets.VERSION_ID }}
+      - name: 'Output fix version'
+        run: echo "Latest Version ${{ steps.release-version.outputs }}"
