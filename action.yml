@@ -10,7 +10,7 @@ inputs:
     description: Jira API token
   subdomain:
     required: true
-    description: '{subdomain}.atlassian.com'
+    description: '{subdomain}.atlassian.net'
   version-id:
     required: true
     description: The id of the unreleased version

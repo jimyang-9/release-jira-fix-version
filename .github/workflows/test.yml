@@ -26,5 +26,5 @@ jobs:
           api-token: ${{ secrets.API_TOKEN }}
           subdomain: ${{ secrets.SUBDOMAIN }}
           version-id: ${{ secrets.VERSION_ID }}
-      - name: 'Output fix version'
+      - name: 'Release fix version'
         run: echo "Latest Version ${{ steps.release-version.outputs }}"
