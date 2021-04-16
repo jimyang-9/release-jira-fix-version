@@ -1,16 +1,42 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import {EMAIL, API_TOKEN, SUBDOMAIN, VERSION_ID} from './env'
+import {getJiraVersion, releaseJiraFixVersion} from './client'
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
+    const version = await getJiraVersion(
+      EMAIL,
+      API_TOKEN,
+      SUBDOMAIN,
+      VERSION_ID
+    )
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    if (!version) {
+      core.setFailed('Could not find version')
+    }
 
-    core.setOutput('time', new Date().toTimeString())
+    if (version?.released === true) {
+      core.setFailed('Version is already released')
+    }
+
+    const releasedVersion = await releaseJiraFixVersion(
+      EMAIL,
+      API_TOKEN,
+      SUBDOMAIN,
+      version
+    )
+
+    if (!releasedVersion || !releasedVersion?.released) {
+      core.setFailed('Could not release version')
+    }
+
+    core.startGroup('Released Version')
+    for (const key in releasedVersion) {
+      const value = releasedVersion[key as keyof typeof releasedVersion]
+      core.info(`${key}: ${value}`)
+      core.setOutput(key, value)
+    }
+    core.endGroup()
   } catch (error) {
     core.setFailed(error.message)
   }
