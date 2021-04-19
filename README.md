@@ -1,8 +1,8 @@
-# Datadog Metrics Reporter Action
+# Release Jira Fix Version
 
 [![CI](https://github.com/jimyang-9/release-jira-fix-version/actions/workflows/test.yml/badge.svg)](https://github.com/jimyang-9/release-jira-fix-version/actions/workflows/test.yml) ![Package Version](https://img.shields.io/github/package-json/v/jimyang-9/release-jira-fix-version)
 
-Get latest Jira version (released or unreleased) for a project.
+Mark Jira version as released
 
 ## Usage
 
