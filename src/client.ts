@@ -25,11 +25,12 @@ export const getJiraVersion = async (
 ): Promise<Version> => {
   try {
     core.debug('getting version...')
+    const authorizationTokens = `${email}:${apiToken}`
     const response = await axios.get(
       `https://${domain}.atlassian.net/rest/api/3/version/${versionId}`,
       {
         headers: {
-          Authorization: `Basic ${Buffer.from(`${email}:${apiToken}`).toString(
+          Authorization: `Basic ${Buffer.from(authorizationTokens).toString(
             'base64'
           )}`,
           Accept: 'application/json'
@@ -42,6 +43,8 @@ export const getJiraVersion = async (
   }
 }
 
+const todaysFormattedDate = (): string => new Date().toISOString().split('T')[0]
+
 export const releaseJiraFixVersion = async (
   email: string,
   apiToken: string,
@@ -50,12 +53,18 @@ export const releaseJiraFixVersion = async (
 ): Promise<Version> => {
   try {
     core.debug('releasing...')
+    const releasedVersion: Version = {
+      ...version,
+      released: true,
+      releaseDate: todaysFormattedDate()
+    }
+    const authorizationTokens = `${email}:${apiToken}`
     const response = await axios.put(
       `https://${domain}.atlassian.net/rest/api/3/version/${version.id}`,
-      {...version, released: true},
+      releasedVersion,
       {
         headers: {
-          Authorization: `Basic ${Buffer.from(`${email}:${apiToken}`).toString(
+          Authorization: `Basic ${Buffer.from(authorizationTokens).toString(
             'base64'
           )}`,
           Accept: 'application/json'
