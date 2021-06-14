@@ -1,4 +1,8 @@
-import {getJiraVersion, releaseJiraFixVersion} from '../src/client'
+import {
+  getJiraVersion,
+  releaseJiraFixVersion,
+  todaysFormattedDate
+} from '../src/client'
 import {rest} from 'msw'
 import {setupServer} from 'msw/node'
 import {UNRELEASED_VERSION, AUTH_ERROR} from '../src/mocks'
@@ -66,7 +70,7 @@ describe('getJiraVersion', () => {
 })
 
 describe('releaseJiraFixVersion', () => {
-  it('marks the version passed in as released and returns it', async () => {
+  it('marks the version passed in as released and returns it with todays date', async () => {
     const releasedVersion = await releaseJiraFixVersion(
       EMAIL,
       API_TOKEN,
@@ -80,7 +84,7 @@ describe('releaseJiraFixVersion', () => {
       archived: false,
       released: true,
       startDate: '2020-10-01',
-      releaseDate: '2021-01-08',
+      releaseDate: todaysFormattedDate(),
       userStartDate: '30/Sep/20',
       userReleaseDate: '07/Jan/21',
       projectId: 123

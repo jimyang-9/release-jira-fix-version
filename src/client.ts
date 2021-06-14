@@ -43,7 +43,8 @@ export const getJiraVersion = async (
   }
 }
 
-const todaysFormattedDate = (): string => new Date().toISOString().split('T')[0]
+export const todaysFormattedDate = (): string =>
+  new Date().toISOString().split('T')[0]
 
 export const releaseJiraFixVersion = async (
   email: string,
