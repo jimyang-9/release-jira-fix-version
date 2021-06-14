@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.releaseJiraFixVersion = exports.getJiraVersion = void 0;
+exports.releaseJiraFixVersion = exports.todaysFormattedDate = exports.getJiraVersion = void 0;
 const core = __importStar(__webpack_require__(2186));
 const axios_1 = __importDefault(__webpack_require__(6545));
 const toMoreDescriptiveError = (error) => {
@@ -57,9 +57,10 @@ const toMoreDescriptiveError = (error) => {
 const getJiraVersion = (email, apiToken, domain, versionId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         core.debug('getting version...');
+        const authorizationTokens = `${email}:${apiToken}`;
         const response = yield axios_1.default.get(`https://${domain}.atlassian.net/rest/api/3/version/${versionId}`, {
             headers: {
-                Authorization: `Basic ${Buffer.from(`${email}:${apiToken}`).toString('base64')}`,
+                Authorization: `Basic ${Buffer.from(authorizationTokens).toString('base64')}`,
                 Accept: 'application/json'
             }
         });
@@ -70,12 +71,16 @@ const getJiraVersion = (email, apiToken, domain, versionId) => __awaiter(void 0,
     }
 });
 exports.getJiraVersion = getJiraVersion;
+const todaysFormattedDate = () => new Date().toISOString().split('T')[0];
+exports.todaysFormattedDate = todaysFormattedDate;
 const releaseJiraFixVersion = (email, apiToken, domain, version) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         core.debug('releasing...');
-        const response = yield axios_1.default.put(`https://${domain}.atlassian.net/rest/api/3/version/${version.id}`, Object.assign(Object.assign({}, version), { released: true }), {
+        const releasedVersion = Object.assign(Object.assign({}, version), { released: true, releaseDate: exports.todaysFormattedDate() });
+        const authorizationTokens = `${email}:${apiToken}`;
+        const response = yield axios_1.default.put(`https://${domain}.atlassian.net/rest/api/3/version/${version.id}`, releasedVersion, {
             headers: {
-                Authorization: `Basic ${Buffer.from(`${email}:${apiToken}`).toString('base64')}`,
+                Authorization: `Basic ${Buffer.from(authorizationTokens).toString('base64')}`,
                 Accept: 'application/json'
             }
         });
